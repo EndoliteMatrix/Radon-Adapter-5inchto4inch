@@ -16,14 +16,14 @@
 // narrow-end-up with a brim on the cone tip.
 // ============================================================
 
-// ---------- PVC FIT (the one thing you probably want to tune) ----------
+// ---------- PVC FIT (Tune to your usecase. I measured with a Reekon T1 Tomahawk) ----------
 
 pvc_od              = 112.78;   // 4.440"  — your measured PVC OD
 pvc_clearance       =   0.25;   // +0.010" snug friction fit
                                 // bump to 0.35 for looser,
                                 // drop to 0.15 for tighter
 
-// ---------- EXTERNAL CONE/RIDGE/SHOULDER (matches the original) ----------
+// ---------- EXTERNAL CONE/RIDGE/SHOULDER  ----------
 
 cone_bottom_od      = 122.6;    //  4.83"  OD at the narrow (bottom) end
 cone_top_od         = 125.0;    //  4.92"  OD where the gentle cone levels off
