@@ -1,5 +1,6 @@
 // ============================================================
-// 4" DWV PVC to 5" Lid Adapter — parametric remix of the original
+// 4" DWV PVC to 5" Lid Adapter — parametric remix a standard fitting,
+// with non-standard transitions
 //
 // Preserves the cone / ridge / shoulder geometry from the STL you
 // supplied (wedges into a 5" drilled hole naturally).
