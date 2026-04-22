@@ -1,0 +1,134 @@
+// ============================================================
+// 4" Sch 40 PVC to 5" Lid Adapter — parametric, final
+//
+// External geometry matches the original STL's cone / ridge /
+// shoulder profile. Ridge underside is a flat annular shoulder
+// for caulking against the lid.
+//
+// Sized for your measured pipe: max OD 4.5095", ovality 0.037".
+// Socket ID 4.541" gives 0.031" clearance on the wide axis,
+// 0.068" on the narrow axis — snug where it grips, slack where
+// the pipe is squished.
+//
+// Socket mouth has a 3mm chamfer for easy pipe insertion —
+// opens to 4.777" at the mouth, ramping down to 4.541" over
+// 3mm of socket depth.
+//
+// Bambu ABS, stock filament profile, 100% scale.
+// Print narrow-end-down. No supports needed.
+// ============================================================
+
+// ---------- PVC FIT ----------
+
+pvc_od              = 114.74;   // 4.5095"  — max measured OD
+pvc_clearance       =   0.60;   // +0.024"  — breathing room for ovality
+
+// ---------- EXTERNAL CONE / RIDGE / SHOULDER ----------
+
+cone_bottom_od      = 122.6;    //  4.83"   narrow (bottom) end
+cone_top_od         = 125.0;    //  4.92"   top of the gentle cone
+ridge_od            = 129.4;    //  5.09"   retention ridge — wedges on 5" hole
+
+cone_height         =  42;      // gentle cone_bottom_od -> cone_top_od taper
+straight_height     =   6;      // straight section at cone_top_od below the ridge
+ridge_height        =   6;      // cylindrical ridge; underside is the flat
+                                // annular caulking shoulder
+ridge_fall          =   6;      // taper above the ridge (sits above lid)
+shoulder_height     =  18;      // taper from cone_top_od down to socket_od
+socket_height       =  38;      // PVC socket depth
+
+// ---------- INTERNAL ----------
+
+through_bore        = 102;      // ~4.0"  internal flow bore
+socket_wall_thick   = 3.0;      // socket wall thickness
+
+// ---------- COSMETIC ----------
+
+socket_chamfer      = 3.0;      // 3mm @ 45° — mouth opens to socket_od for
+                                // generous pipe lead-in (was 1.5mm, too small
+                                // given the pipe's ovality)
+base_chamfer        = 1.0;      // small chamfer at narrow bottom edge
+
+// ---------- PRINT QUALITY ----------
+
+$fn = 180;
+
+// ---------- DERIVED ----------
+
+socket_id = pvc_od + pvc_clearance;
+socket_od = socket_id + 2 * socket_wall_thick;
+
+z_cone_top     = cone_height;
+z_straight     = z_cone_top + straight_height;
+z_ridge_top    = z_straight + ridge_height;
+z_ridge_bot    = z_ridge_top + ridge_fall;
+z_shoulder     = z_ridge_bot + shoulder_height;
+z_top          = z_shoulder + socket_height;
+
+echo(str("Socket ID:      ", socket_id,  " mm (", socket_id/25.4,  " in)"));
+echo(str("Socket mouth:   ", socket_id + 2*socket_chamfer, " mm (",
+         (socket_id + 2*socket_chamfer)/25.4, " in)"));
+echo(str("Socket OD:      ", socket_od,  " mm (", socket_od/25.4,  " in)"));
+echo(str("Ridge OD:       ", ridge_od,   " mm (", ridge_od/25.4,   " in)"));
+echo(str("Caulk shoulder: ", (ridge_od - cone_top_od)/2, " mm wide, at z=", z_straight));
+echo(str("Total height:   ", z_top,      " mm (", z_top/25.4,      " in)"));
+
+// ---------- GEOMETRY ----------
+
+module adapter() {
+    difference() {
+        union() {
+            // Gentle cone (narrow bottom -> cone_top_od)
+            cylinder(h=cone_height, d1=cone_bottom_od, d2=cone_top_od);
+
+            // Straight cylinder immediately below the ridge
+            translate([0,0,z_cone_top])
+                cylinder(h=straight_height, d=cone_top_od);
+
+            // Ridge cylinder at ridge_od. The step down from ridge_od to
+            // cone_top_od at its bottom is the flat annular caulking shoulder.
+            translate([0,0,z_straight])
+                cylinder(h=ridge_height, d=ridge_od);
+
+            // Above-lid taper: ridge_od back down to cone_top_od
+            translate([0,0,z_ridge_top])
+                cylinder(h=ridge_fall, d1=ridge_od, d2=cone_top_od);
+
+            // Shoulder taper down to socket_od
+            translate([0,0,z_ridge_bot])
+                cylinder(h=shoulder_height, d1=cone_top_od, d2=socket_od);
+
+            // PVC socket
+            translate([0,0,z_shoulder])
+                cylinder(h=socket_height, d=socket_od);
+        }
+
+        // Internal flow bore (from bottom up to the socket step)
+        translate([0,0,-0.1])
+            cylinder(h=z_shoulder + 0.1, d=through_bore);
+
+        // PVC socket bore
+        translate([0,0,z_shoulder])
+            cylinder(h=socket_height + 0.2, d=socket_id);
+
+        // Socket mouth chamfer — 3mm deep, opens out to socket_od.
+        // Generous lead-in for the oval pipe.
+        translate([0,0,z_top - socket_chamfer])
+            cylinder(h=socket_chamfer + 0.01,
+                     d1=socket_id, d2=socket_id + 2*socket_chamfer);
+
+        // Narrow-base chamfer (cleaner first-layer edge)
+        if (base_chamfer > 0) {
+            translate([0,0,-0.01])
+                difference() {
+                    cylinder(h=base_chamfer + 0.01,
+                             d=cone_bottom_od + 2);
+                    cylinder(h=base_chamfer + 0.02,
+                             d1=cone_bottom_od - 2*base_chamfer,
+                             d2=cone_bottom_od);
+                }
+        }
+    }
+}
+
+adapter();
